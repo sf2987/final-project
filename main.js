@@ -1,154 +1,147 @@
-var width = 1300;
-var height = 800;
+'use strict';
 
-var dataset = [];
-var nameset = [];
+window.chartColors = {
+	red: 'rgb(255, 99, 132)',
+	orange: 'rgb(255, 159, 64)',
+	yellow: 'rgb(255, 205, 86)',
+	green: 'rgb(75, 192, 192)',
+	blue: 'rgb(54, 162, 235)',
+	purple: 'rgb(153, 102, 255)',
+	grey: 'rgb(201, 203, 207)'
+};
 
+(function(global) {
+	var MONTHS = [
+		'January',
+		'February',
+		'March',
+		'April',
+		'May',
+		'June',
+		'July',
+		'August',
+		'September',
+		'October',
+		'November',
+		'December'
+	];
 
-var data = [{"station":"Times Sq-42 St","riders":261},
-{"province":"SD","museum":351},
-{"province":"HA","museum":274},
-{"province":"SC","museum":223},
-{"province":"JS","museum":284},
-{"province":"HE","museum":100},
-{"province":"HN","museum":134},
-{"province":"AH","museum":189},
-{"province":"ZJ","museum":286},
-{"province":"HB","museum":204},
-{"province":"GX","museum":102},
-{"province":"YN","museum":105},
-{"province":"JX","museum":141},
-{"province":"LN","museum":97},
-{"province":"HL","museum":200},
-{"province":"SN","museum":244},
-{"province":"FJ","museum":115},
-{"province":"SX","museum":126},
-{"province":"GZ","museum":84},
-{"province":"CQ","museum":72},
-{"province":"JL","museum":107},
-{"province":"GS","museum":190},
-{"province":"IM","museum":198},
-{"province":"SH","museum":119},
-{"province":"XJ","museum":105},
-{"province":"BJ","museum":151},
-{"province":"TJ","museum":58},
-{"province":"NX","museum":40},
-{"province":"QH","museum":33},
-{"province":"Tibet","museum":8},
-{"province":"HI","museum":25}
+	var COLORS = [
+		'#4dc9f6',
+		'#f67019',
+		'#f53794',
+		'#537bc4',
+		'#acc236',
+		'#166a8f',
+		'#00a950',
+		'#58595b',
+		'#8549ba'
+	];
 
-];
+	var Samples = global.Samples || (global.Samples = {});
+	var Color = global.Color;
 
+	Samples.utils = {
+		// Adapted from http://indiegamr.com/generate-repeatable-random-numbers-in-js/
+		srand: function(seed) {
+			this._seed = seed;
+		},
 
+		rand: function(min, max) {
+			var seed = this._seed;
+			min = min === undefined ? 0 : min;
+			max = max === undefined ? 1 : max;
+			this._seed = (seed * 9301 + 49297) % 233280;
+			return min + (this._seed / 233280) * (max - min);
+		},
 
-data.forEach(function(d){
-    dataset.push(d.museum);
-    nameset.push(d.province);
-  });
+		numbers: function(config) {
+			var cfg = config || {};
+			var min = cfg.min || 0;
+			var max = cfg.max || 1;
+			var from = cfg.from || [];
+			var count = cfg.count || 8;
+			var decimals = cfg.decimals || 8;
+			var continuity = cfg.continuity || 1;
+			var dfactor = Math.pow(10, decimals) || 0;
+			var data = [];
+			var i, value;
 
+			for (i = 0; i < count; ++i) {
+				value = (from[i] || 0) + this.rand(min, max);
+				if (this.rand() <= continuity) {
+					data.push(Math.round(dfactor * value) / dfactor);
+				} else {
+					data.push(null);
+				}
+			}
 
-var svg = d3.select("body").append("svg")
-   .attr("width",width)
-   .attr("height",height);
+			return data;
+		},
 
-/*
-d3.json("data.json",function(error,data){
+		labels: function(config) {
+			var cfg = config || {};
+			var min = cfg.min || 0;
+			var max = cfg.max || 100;
+			var count = cfg.count || 8;
+			var step = (max - min) / count;
+			var decimals = cfg.decimals || 8;
+			var dfactor = Math.pow(10, decimals) || 0;
+			var prefix = cfg.prefix || '';
+			var values = [];
+			var i;
 
-data.forEach(function(d){
-    dataset.push(d.museum);
-    nameset.push(d.province);
-  });
+			for (i = min; i < max; i += step) {
+				values.push(prefix + Math.round(dfactor * i) / dfactor);
+			}
 
-*/
+			return values;
+		},
 
+		months: function(config) {
+			var cfg = config || {};
+			var count = cfg.count || 12;
+			var section = cfg.section;
+			var values = [];
+			var i, value;
 
-var xAxisScale = d3.scale.ordinal()
-   .domain(d3.range(dataset.length))
-   .rangeRoundBands([0,1200]);
+			for (i = 0; i < count; ++i) {
+				value = MONTHS[Math.ceil(i) % 12];
+				values.push(value.substring(0, section));
+			}
 
-var yAxisScale = d3.scale.linear()
-   .domain([0,d3.max(dataset)])
-   .range([500,0]);
+			return values;
+		},
 
-var xAxis = d3.svg.axis()
-   .scale(xAxisScale)
-   .orient("bottom");
+		color: function(index) {
+			return COLORS[index % COLORS.length];
+		},
 
-var yAxis = d3.svg.axis()
-   .scale(yAxisScale)
-   .orient("left");
+		transparentize: function(color, opacity) {
+			var alpha = opacity === undefined ? 0.5 : 1 - opacity;
+			return Color(color).alpha(alpha).rgbString();
+		}
+	};
 
+	// DEPRECATED
+	window.randomScalingFactor = function() {
+		return Math.round(Samples.utils.rand(-100, 100));
+	};
 
+	// INITIALIZATION
 
-var xScale = d3.scale.ordinal()
-   .domain(d3.range(dataset.length))
-   .rangeRoundBands([0,1200],0.02);
+	Samples.utils.srand(Date.now());
 
-var yScale = d3.scale.linear()
-  .domain([0,d3.max(dataset)])
-  .range([0,500]);
+	// Google Analytics
+	/* eslint-disable */
+	if (document.location.hostname.match(/^(www\.)?chartjs\.org$/)) {
+		(function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+		(i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+		m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+		})(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+		ga('create', 'UA-28909194-3', 'auto');
+		ga('send', 'pageview');
+	}
+	/* eslint-enable */
 
-svg.selectAll("rect")
-   .data(dataset)
-   .enter()
-   .append("rect")
-   .attr("y",function(d,i){return 50 + 500 ;})
-   .attr("height",0)
-   .attr("fill","yellow")
-   .transition()
-   .duration(3000)
-   .ease("sin")
-   .delay(function(d,i){return 200*i;})
-   .attr("x", function(d,i){return 30 + xScale(i);})
-   .attr("y",function(d,i){return 50 + 500 - yScale(d) ;})
-   .attr("width", function(d,i){return xScale.rangeBand();})
-   .attr("height",yScale)
-   .attr("fill","#8CD3DD");
-
-
-
-svg.selectAll("text")
-            .data(dataset)
-            .enter().append("text")
-            .attr("x", function(d,i){return 30 + xScale(i);} )
-            .attr("y",function(d,i){return 50 + 500 - yScale(d) ;})
-            .attr("dx", function(d,i){return xScale.rangeBand()/3;})
-            .attr("dy", 15)
-            .attr("text-anchor", "begin")
-            .attr("font-size", 14)
-            .attr("fill","white")
-            .text(function(d,i){return d;});
-
-xAxisScale.domain(nameset);
-
-svg.append("g")
-  .attr("class","axis")
-  .attr("transform","translate(30,550)")
-  .call(xAxis);
-
-
-svg.append("g")
-  .attr("class","axis")
-  .attr("transform","translate(30,50)")
-  .call(yAxis);
-
-//grid
-
-function make_y_axis(){
-  return d3.svg.axis()
-    .scale(yScale)
-    .orient("left")
-    .tickValues([35,85,135,185,235,285,335])
-}
-
-
-svg.append("g")
-  .attr("class","grid")
-  .call(make_y_axis()
-      .tickSize(-1200,50,0)
-      .tickFormat("")
-    )
-
-
-
-//})
+}(this));
