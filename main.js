@@ -5,7 +5,7 @@ var dataset = [];
 var nameset = [];
 
 
-var data = [{"province":"GD","museum":261},
+var data = [{"station":"Times Sq-42 St","riders":261},
 {"province":"SD","museum":351},
 {"province":"HA","museum":274},
 {"province":"SC","museum":223},
