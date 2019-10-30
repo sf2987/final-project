@@ -1,11 +1,11 @@
 // Our labels along the x-axis
 var years = [2014,2015,2016,2017,2018];
 // For drawing the lines
-var timesSq = [86,114,106,106,107,111,133,221,783,2478];
-var grandCentral = [282,350,411,502,635,809,947,1402,3700,5267];
-var heraldSquare = [168,170,178,190,203,276,408,547,675,734];
-var unionSquare = [40,20,10,16,24,38,74,167,508,784];
-var pennStation = [6,3,2,2,7,26,82,172,312,433];
+var timesSq = [65948730,66359208,64531511,64815739,65060656];
+var grandCentral = [46074652,46737564,46121509,44928488,45207849];
+var heraldSquare = [39285568,39541865,39000352,39672507,39111312];
+var unionSquare = [35677468,35320623,34289822,34557551,33124407];
+var pennStation = [26493571,26147434,25183869,24366500,24857456];
 
 var ctx = document.getElementById("myChart");
 var myChart = new Chart(ctx, {
