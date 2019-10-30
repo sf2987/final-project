@@ -1,119 +1,154 @@
-var margin = {top: 60, right: 50, bottom: 50, left: 90};
-var width = 1000 - margin.left - margin.right;
-var height = 600 - margin.top - margin.bottom;
+var width = 1300;
+var height = 800;
 
-var months = [
-  '',
-  'January',
-  'February',
-  'March',
-  'April',
-  'May',
-  'June',
-  'July',
-  'August',
-  'September',
-  'October',
-  'November',
-  'December'
-]
+var dataset = [];
+var nameset = [];
 
 
-var baseTemp = 0;
+var data = [{"province":"GD","museum":261},
+{"province":"SD","museum":351},
+{"province":"HA","museum":274},
+{"province":"SC","museum":223},
+{"province":"JS","museum":284},
+{"province":"HE","museum":100},
+{"province":"HN","museum":134},
+{"province":"AH","museum":189},
+{"province":"ZJ","museum":286},
+{"province":"HB","museum":204},
+{"province":"GX","museum":102},
+{"province":"YN","museum":105},
+{"province":"JX","museum":141},
+{"province":"LN","museum":97},
+{"province":"HL","museum":200},
+{"province":"SN","museum":244},
+{"province":"FJ","museum":115},
+{"province":"SX","museum":126},
+{"province":"GZ","museum":84},
+{"province":"CQ","museum":72},
+{"province":"JL","museum":107},
+{"province":"GS","museum":190},
+{"province":"IM","museum":198},
+{"province":"SH","museum":119},
+{"province":"XJ","museum":105},
+{"province":"BJ","museum":151},
+{"province":"TJ","museum":58},
+{"province":"NX","museum":40},
+{"province":"QH","museum":33},
+{"province":"Tibet","museum":8},
+{"province":"HI","museum":25}
+
+];
 
 
-var colorScale = d3.scaleSequential(d3.interpolateInferno);
+
+data.forEach(function(d){
+    dataset.push(d.museum);
+    nameset.push(d.province);
+  });
 
 
-var xScale = d3.scaleBand()
-    .range([0, width]);
-var yScale = d3.scaleBand()
-    .rangeRound([0, height]);
+var svg = d3.select("body").append("svg")
+   .attr("width",width)
+   .attr("height",height);
+
+/*
+d3.json("data.json",function(error,data){
+
+data.forEach(function(d){
+    dataset.push(d.museum);
+    nameset.push(d.province);
+  });
+
+*/
 
 
-var div = d3.select('body').append('div')
-    .attr('class', 'tooltip');
+var xAxisScale = d3.scale.ordinal()
+   .domain(d3.range(dataset.length))
+   .rangeRoundBands([0,1200]);
 
-function showTip(d) {
-  div.style('opacity', 0.9)
-      .html('<h3><b>' + months[d.month] + ' ' + d.year + '</b></h3>' +
-            '<p><b>Temp: ' + (baseTemp + d.variance).toFixed(3) + '℃</b></p>' +
-            '<p><i>Variance: ' + d.variance + '℃</i></p>')
-      .style('left', Math.min(d3.event.pageX - 75, 850) + 'px')
-      .style('top', Math.max(d3.event.pageY - 100, margin.top) + 'px');
+var yAxisScale = d3.scale.linear()
+   .domain([0,d3.max(dataset)])
+   .range([500,0]);
+
+var xAxis = d3.svg.axis()
+   .scale(xAxisScale)
+   .orient("bottom");
+
+var yAxis = d3.svg.axis()
+   .scale(yAxisScale)
+   .orient("left");
+
+
+
+var xScale = d3.scale.ordinal()
+   .domain(d3.range(dataset.length))
+   .rangeRoundBands([0,1200],0.02);
+
+var yScale = d3.scale.linear()
+  .domain([0,d3.max(dataset)])
+  .range([0,500]);
+
+svg.selectAll("rect")
+   .data(dataset)
+   .enter()
+   .append("rect")
+   .attr("y",function(d,i){return 50 + 500 ;})
+   .attr("height",0)
+   .attr("fill","yellow")
+   .transition()
+   .duration(3000)
+   .ease("sin")
+   .delay(function(d,i){return 200*i;})
+   .attr("x", function(d,i){return 30 + xScale(i);})
+   .attr("y",function(d,i){return 50 + 500 - yScale(d) ;})
+   .attr("width", function(d,i){return xScale.rangeBand();})
+   .attr("height",yScale)
+   .attr("fill","#8CD3DD");
+
+
+
+svg.selectAll("text")
+            .data(dataset)
+            .enter().append("text")
+            .attr("x", function(d,i){return 30 + xScale(i);} )
+            .attr("y",function(d,i){return 50 + 500 - yScale(d) ;})
+            .attr("dx", function(d,i){return xScale.rangeBand()/3;})
+            .attr("dy", 15)
+            .attr("text-anchor", "begin")
+            .attr("font-size", 14)
+            .attr("fill","white")
+            .text(function(d,i){return d;});
+
+xAxisScale.domain(nameset);
+
+svg.append("g")
+  .attr("class","axis")
+  .attr("transform","translate(30,550)")
+  .call(xAxis);
+
+
+svg.append("g")
+  .attr("class","axis")
+  .attr("transform","translate(30,50)")
+  .call(yAxis);
+
+//grid
+
+function make_y_axis(){
+  return d3.svg.axis()
+    .scale(yScale)
+    .orient("left")
+    .tickValues([35,85,135,185,235,285,335])
 }
-function hideTip() {
-  div.style('opacity', 0);
-}
-
-var svg = d3.select('div.chart').append('svg')
-    .attr('width', width + margin.left + margin.right)
-    .attr('height', height + margin.top + margin.bottom)
-  .append('g')
-    .attr('transform',
-          'translate(' + margin.left +
-          "," + margin.top + ')');
-
-d3.json('https://raw.githubusercontent.com/FreeCodeCamp/ProjectReferenceData/master/global-temperature.json', function(error, result) {
 
 
-  if (error) throw error;
+svg.append("g")
+  .attr("class","grid")
+  .call(make_y_axis()
+      .tickSize(-1200,50,0)
+      .tickFormat("")
+    )
 
-  baseTemp = result.baseTemperature;
-  var data = result.monthlyVariance;
 
-  colorScale.domain([d3.min(data, d => baseTemp + d.variance),
-                     d3.max(data, d => baseTemp + d.variance)]);
-  xScale.domain(data.map(d => d.year));
-  yScale.domain(data.map(d => d.month));
-  var xValues = xScale.domain()
-                .filter(d => !(d % 20));
 
-  svg.append('text')
-      .attr('class', 'title')
-      .attr('transform', 'translate(' + (width / 2) + ', -20)')
-      .text('Monthly Global Land-Surface Temperature');
-
-  svg.append('g')
-      .attr('class', 'x axis')
-      .attr('transform', 'translate(0,' + height + ')')
-      .call(d3.axisBottom(xScale)
-            .tickValues(xValues)
-            .tickSizeOuter(0));
-
-  svg.append('text')
-      .attr('text-anchor', 'middle')
-      .attr('transform', 'translate(' + (width / 2) + ', ' +
-                           (height + margin.bottom - 10) + ')')
-      .attr('font-weight', 'bold')
-      .text('Year');
-
-  svg.append('g')
-      .attr('class', 'y axis')
-      .call(d3.axisLeft(yScale)
-            .tickFormat(d => months[d]));
-
-  svg.append('text')
-      .attr('text-anchor', 'middle')
-      .attr('transform', 'rotate(-90)')
-      .attr('x', -height / 2)
-      .attr('y', -margin.left + 20)
-      .attr('font-weight', 'bold')
-      .text('Month');
-
-  svg.selectAll('area')
-    .data(data).enter().append('rect')
-      .attr('width', Math.ceil(xScale.bandwidth()))
-      .attr('x', d => xScale(d.year))
-      .attr('height', Math.ceil(yScale.bandwidth()))
-      .attr('y', d => yScale(d.month))
-      .on('mouseover', showTip)
-      .on('mouseout', hideTip)
-      .style('fill', 'rgba(0,0,0,0)')
-      .transition()
-        .delay(d => xScale(d.year))
-        .duration(1000)
-        .style('fill', d => colorScale(baseTemp + d.variance))
-      ;
-
-});
+//})
