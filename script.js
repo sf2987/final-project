@@ -7,6 +7,10 @@ var heraldSquare = [38213448,39285568,39541865,39000352,39672507,39111312];
 var unionSquare = [35309414,35677468,35320623,34289822,34557551,33124407];
 var pennStation = [25726374,26493571,26147434,25183869,24366500,24857456];
 
+var n = 63617614
+n.toLocaleString()
+"63,617,614";
+
 var ctx = document.getElementById("myChart");
 var myChart = new Chart(ctx, {
   type: 'line',
@@ -45,11 +49,4 @@ var myChart = new Chart(ctx, {
       }
     ]
   }
-	function numberWithCommas(x) {
-    x = x.toString();
-    var pattern = /(-?\d+)(\d{3})/;
-    while (pattern.test(x))
-        x = x.replace(pattern, "$1,$2");
-    return x;
-}
 });
