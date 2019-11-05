@@ -14,7 +14,9 @@ var fiftyNinth = [21282767,21557198,21407792,21000635,17888188,16955204];
 
 
 
+
 var ctx = document.getElementById("myChart");
+
 var myChart = new Chart(ctx, {
   type: 'line',
   data: {
